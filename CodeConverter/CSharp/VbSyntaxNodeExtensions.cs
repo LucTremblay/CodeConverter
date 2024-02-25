@@ -22,7 +22,7 @@ internal static class VbSyntaxNodeExtensions
 
     public static bool AlwaysHasBooleanTypeInCSharp(this VBSyntax.ExpressionSyntax vbNode)
     {
-        var parent = vbNode.SkipOutOfParens()?.Parent;
+        var parent = vbNode.Parent is VBSyntax.ExpressionSyntax parentExp ? parentExp.SkipOutOfParens() : vbNode.Parent;
 
         return parent is VBSyntax.SingleLineIfStatementSyntax singleLine && singleLine.Condition == vbNode ||
                parent is VBSyntax.IfStatementSyntax ifStatement && ifStatement.Condition == vbNode ||
