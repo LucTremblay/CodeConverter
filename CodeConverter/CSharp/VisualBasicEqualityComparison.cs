@@ -113,10 +113,22 @@ internal class VisualBasicEqualityComparison
         }
 
         csNode = typeInfo.Type?.SpecialType == SpecialType.System_String
-            ? Coalesce(csNode, EmptyStringExpression()).AddParens()
+            ? ExtensionMethodCall("ToStr", csNode, null).AddParens()
             : Coalesce(csNode, EmptyCharArrayExpression());
 
         return VbCoerceToString(csNode, typeInfo);
+    }
+
+    protected ExpressionSyntax ExtensionMethodCall(string methodName, ExpressionSyntax csName, ExpressionSyntax? arg)
+    {
+        ExtraUsingDirectives.Add("VBtoCSharp.Compatiblity");
+        ArgumentListSyntax argLst;
+        if (arg is null)
+            argLst = SyntaxFactory.ArgumentList();
+        else
+            argLst = SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(arg)));
+        var member = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, csName.AddParens(), ValidSyntaxFactory.IdentifierName(methodName));
+        return SyntaxFactory.InvocationExpression(member, argLst);
     }
 
     public static ExpressionSyntax VbCoerceToString(ExpressionSyntax csNode, TypeInfo typeInfo)
