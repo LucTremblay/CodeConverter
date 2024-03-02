@@ -18,7 +18,8 @@ internal class VisualBasicNullableExpressionsConverter
 {
     public IQueryTracker? QueryTracker { get; set; }
     private bool IsWithinQuery => QueryTracker?.IsWithinQuery == true;
-    private readonly SemanticModel _semanticModel;
+    protected readonly SemanticModel _semanticModel;
+    protected readonly HashSet<string> _extraUsingDirectives;
     private static readonly IsPatternExpressionSyntax NotFormattedIsPattern = ((IsPatternExpressionSyntax)SyntaxFactory.ParseExpression("is {}"));
     private static readonly IsPatternExpressionSyntax NotFormattedNegatedIsPattern = ((IsPatternExpressionSyntax)SyntaxFactory.ParseExpression("is not {}"));
 
@@ -33,9 +34,13 @@ internal class VisualBasicNullableExpressionsConverter
     /// </summary>
     private static readonly SyntaxAnnotation IsNotNullableAnnotation = new("CodeConverter.Nullable", false.ToString());
 
-    public VisualBasicNullableExpressionsConverter(SemanticModel semanticModel) => _semanticModel = semanticModel;
+    public VisualBasicNullableExpressionsConverter(SemanticModel semanticModel, HashSet<string> extraUsingDirectives)
+    {
+         _semanticModel = semanticModel;
+        _extraUsingDirectives = extraUsingDirectives;
+    }
 
-    public ExpressionSyntax InvokeConversionWhenNotNull(VBSyntax.ExpressionSyntax vbExpr, ExpressionSyntax csExpr, MemberAccessExpressionSyntax conversionMethod, TypeSyntax castType)
+    public virtual ExpressionSyntax InvokeConversionWhenNotNull(VBSyntax.ExpressionSyntax vbExpr, ExpressionSyntax csExpr, MemberAccessExpressionSyntax conversionMethod, TypeSyntax castType)
     {
         var hasValueCheck = HasValue(vbExpr, ref csExpr);
         var arguments = SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(csExpr)));
@@ -45,7 +50,7 @@ internal class VisualBasicNullableExpressionsConverter
         return hasValueCheck.Conditional(invocation, ValidSyntaxFactory.NullExpression).AddParens();
     }
 
-    public ExpressionSyntax WithBinaryExpressionLogicForNullableTypes(VBSyntax.BinaryExpressionSyntax vbNode, TypeInfo lhsTypeInfo, TypeInfo rhsTypeInfo, BinaryExpressionSyntax csBinExp, ExpressionSyntax lhs, ExpressionSyntax rhs)
+    public virtual ExpressionSyntax WithBinaryExpressionLogicForNullableTypes(VBSyntax.BinaryExpressionSyntax vbNode, TypeInfo lhsTypeInfo, TypeInfo rhsTypeInfo, BinaryExpressionSyntax csBinExp, ExpressionSyntax lhs, ExpressionSyntax rhs)
     {
         if (IsWithinQuery ||
             !IsSupported(vbNode.Kind()) || 
