@@ -43,8 +43,8 @@ internal static class MethodInfoExtensions
         string propertyToAccess)
     {
         var type = instance.GetType();
-        var propertyInfo = type.GetProperty(propertyToAccess, BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
-        propertyInfo ??= type.ReflectedType?.GetProperty(propertyToAccess, BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+        var propertyInfo = type.GetProperty(propertyToAccess, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
+        propertyInfo ??= type.ReflectedType?.GetProperty(propertyToAccess, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
         return propertyInfo?.GetMethod.GetRuntimeBaseDefinition();
     }
 }
